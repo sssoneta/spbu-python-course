@@ -1,15 +1,21 @@
 # Operation on vectors
 
 from math import pi, acos
-def the_scalar_product_of_vectors(vector_1, vector_2):
+
+
+def the_scalar_product_of_vectors(vector_1: list[int], vector_2: list[int]):
     """
     Function the_scalar_product_of_vectors checks whether the vectors have the same length. If not, it returns None.
-    Otherwise, the function calculates the scalar product by multiplying the corresponding elements of the vectors
+    Otherwise, the function calculates the scalar pro1duct by multiplying the corresponding elements of the vectors
     and summing the results.
+
     Parameters:
+    -----------
     vector_1 (list): The first vector, represented as a list of numbers.
     vector_2 (list): The second vector, represented as a list of numbers.
+
     Return value:
+    -------------
     int: The scalar product of vectors vector_1 and vector_2, if they have the same length.
     None: If the vectors have different lengths.
 
@@ -23,12 +29,16 @@ def the_scalar_product_of_vectors(vector_1, vector_2):
         return p
 
 
-def vector_length(vector):
-    """"
+def vector_length(vector: list[int]):
+    """
     The vector_length function calculates the length of a vector represented as a list of numbers.
+
     Parameters:
+    -----------
     vector (list): A vector represented as a list of numbers.
+
     Return value:
+    -------------
     int: The length of the vector, rounded to an integer
 
     """
@@ -38,20 +48,23 @@ def vector_length(vector):
     return round(pow(s, 0.5), 2)
 
 
-def the_angle_between_the_vectors(vector_1, vector_2):
+def the_angle_between_the_vectors(vector_1: list[int], vector_2: list[int]):
     """
     The_angle_between_the_vectors function calculates the angle between two vectors
     given as lists of numbers using the scalar product and the lengths of the vectors.
+
     Parameters:
+    -----------
     vector_1 (list): The first vector, represented as a list of numbers.
     vector_2 (list): The second vector, represented as a list of numbers.
+
     Return value:
+    -------------
     float: The angle between the vectors in radians, with an accuracy of two decimal places.
 
     """
     s = the_scalar_product_of_vectors(vector_1, vector_2)
     angle = s / (vector_length(vector_1) * vector_length(vector_2))
-    print(s, vector_length(vector_1), vector_length(vector_2))
     angle = acos(angle)*180/pi
     return round(angle)
 
@@ -59,13 +72,17 @@ def the_angle_between_the_vectors(vector_1, vector_2):
 # Operations on matrices
 
 
-def matrix_addition(matrix_1, matrix_2):
+def matrix_addition(matrix_1: list[list], matrix_2: list[list]):
     """
     Adds two matrices together.
+
     Args:
+    -----
     matrix_1 (list of lists): The first matrix.
     matrix_2 (list of lists): The second matrix.
+
     Returns:
+    --------
     list of lists: The sum of the two matrices, or None if the matrices have
     different dimensions.
     Raises:
@@ -81,16 +98,22 @@ def matrix_addition(matrix_1, matrix_2):
         return matrix_sum
 
 
-def matrix_multiplication(matrix_1, matrix_2):
+def matrix_multiplication(matrix_1: list[list], matrix_2: list[list]):
     """
     The matrix_multiplication function multiplies two matrices represented as nested lists.
+
     Parameters:
+    -----------
     matrix_1 (list of lists): The first matrix.
     matrix_2 (list of lists): The second matrix.
+
     Return value:
+    -------------
     list of lists: The product of two matrices if the number of columns in the first matrix is equal to the number of rows in the second matrix.
     None: If the number of columns in the first matrix is not equal to the number of rows in the second matrix.
+
     Exceptions:
+    -----------
     TypeError: Occurs if one or both of the input arguments are not lists or nested lists.
 
     """
@@ -105,18 +128,24 @@ def matrix_multiplication(matrix_1, matrix_2):
         return matrix_mult
 
 
-def matrix_transposition(matrix):
+def matrix_transposition(matrix: list[list]):
     """
     The matrix_transposition function transposes a matrix represented as a nested list.
     Transposing a matrix means exchanging rows and columns.
     The function passes through each element of the original matrix matrix using nested for loops.
     For each matrix[i][j] element (row i, column j), the function assigns the value of the matrix_trans[j][i] element
     (row j, column i). Thus, the rows and columns of the original matrix are swapped.
+
     Parameters:
+    -----------
     matrix (list of lists): The matrix to be transposed.
+
     Return value:
+    -------------
     list of lists: A transposed matrix represented as a nested list.
+
     Exceptions:
+    -----------
     TypeError: Occurs if the input argument is not a list or a nested list.
 
     """
@@ -129,3 +158,6 @@ def matrix_transposition(matrix):
             for j in range(len(matrix[0])):
                 matrix_trans[j][i] = matrix[i][j]
         return matrix_trans
+
+
+
