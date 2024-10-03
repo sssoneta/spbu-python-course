@@ -65,8 +65,5 @@ def the_angle_between_the_vectors(vector_1: list[int], vector_2: list[int]):
     """
     s = the_scalar_product_of_vectors(vector_1, vector_2)
     angle = s / (vector_length(vector_1) * vector_length(vector_2))
-    angle = acos(angle)*180/pi
+    angle = acos(angle) * 180 / pi
     return round(angle)
-
-
-

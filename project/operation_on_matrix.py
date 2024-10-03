@@ -20,7 +20,7 @@ def matrix_addition(matrix_1: list[list], matrix_2: list[list]):
     if len(matrix_1) != len(matrix_2) or len(matrix_1[0]) != len(matrix_2[0]):
         return None
     else:
-        matrix_sum = [[0]*len(matrix_1[0]) for _ in range(len(matrix_1))]
+        matrix_sum = [[0] * len(matrix_1[0]) for _ in range(len(matrix_1))]
         for i in range(len(matrix_1)):
             for j in range(len(matrix_1[0])):
                 matrix_sum[i][j] = matrix_1[i][j] + matrix_2[i][j]
@@ -49,7 +49,7 @@ def matrix_multiplication(matrix_1: list[list], matrix_2: list[list]):
     if len(matrix_1[0]) != len(matrix_2):
         return None
     else:
-        matrix_mult = [[0]*len(matrix_2[0]) for _ in range(len(matrix_1))]
+        matrix_mult = [[0] * len(matrix_2[0]) for _ in range(len(matrix_1))]
         for i in range(len(matrix_1)):
             for j in range(len(matrix_2[0])):
                 for r in range(len(matrix_2)):
@@ -82,7 +82,7 @@ def matrix_transposition(matrix: list[list]):
     if not matrix:
         return []
     else:
-        matrix_trans = [[0]*len(matrix) for _ in range(len(matrix[0]))]
+        matrix_trans = [[0] * len(matrix) for _ in range(len(matrix[0]))]
         for i in range(len(matrix)):
             for j in range(len(matrix[0])):
                 matrix_trans[j][i] = matrix[i][j]
