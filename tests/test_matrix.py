@@ -1,4 +1,4 @@
-from project.operation_on_vectors_and_matrix import *
+from project.operation_on_matrix import *
 
 import pytest
 
@@ -40,6 +40,13 @@ def test_matrix_multiplication_valid():
     matrix_1 = [[1, 2], [3, 4]]
     matrix_2 = [[5, 6], [7, 8]]
     expected_result = [[19, 22], [43, 50]]
+    assert matrix_multiplication(matrix_1, matrix_2) == expected_result
+
+
+def test_matrix_multiplication():
+    matrix_1 = [[1, 2, 4], [3, 4, 9]]
+    matrix_2 = [[5, 6], [7, 8], [9, 0]]
+    expected_result = [[55, 22], [124, 50]]
     assert matrix_multiplication(matrix_1, matrix_2) == expected_result
 
 

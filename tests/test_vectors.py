@@ -1,4 +1,4 @@
-from project.operation_on_vectors_and_matrix import *
+from project.operation_on_vectors import *
 
 import pytest
 
