@@ -39,4 +39,6 @@ jobs:
       - name: Run pytest
         run: |
           python ./scripts/run_tests.py
-
+      - name: Run mypy
+        run: |
+          mypy project/
