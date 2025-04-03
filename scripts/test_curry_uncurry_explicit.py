@@ -4,9 +4,7 @@ from project.curry_uncurry_explicit import curry_explicit, uncurry_explicit
 
 def test_curry_string_three() -> None:
     # Curry function lambda
-    curry_string_three = curry_explicit(
-        (lambda x, y, z: f"<{x}, {y}, {z}>"), 3
-    )
+    curry_string_three = curry_explicit((lambda x, y, z: f"<{x}, {y}, {z}>"), 3)
     assert "<12, 13, 14>" == curry_string_three(12)(13)(14)
 
     # Uncurry function lambda
@@ -16,9 +14,7 @@ def test_curry_string_three() -> None:
 
 def test_curry_sum_four() -> None:
     # A function with initial arguments
-    curry_sum_four = curry_explicit((lambda x, y, z, t: x + y + z + t), 4)(1)(
-        2
-    )
+    curry_sum_four = curry_explicit((lambda x, y, z, t: x + y + z + t), 4)(1)(2)
     assert curry_sum_four(3)(4) == 10
 
     uncurry_sum_four = uncurry_explicit(curry_sum_four, 2)
@@ -60,4 +56,3 @@ def test_arbitrary_arity_function() -> None:
 
     with pytest.raises(TypeError):
         curried_max(1)(2)(3)(4)
-        

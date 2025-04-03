@@ -26,9 +26,7 @@ def make_key(args: Any, kwargs: Any) -> tuple[Any, ...]:
         """
 
         if isinstance(item, dict):
-            return tuple(
-                (k, recursive_convert(v)) for k, v in sorted(item.items())
-            )
+            return tuple((k, recursive_convert(v)) for k, v in sorted(item.items()))
         elif isinstance(item, (list, set, tuple)):
             return tuple(recursive_convert(i) for i in item)
         else:
@@ -40,9 +38,7 @@ def make_key(args: Any, kwargs: Any) -> tuple[Any, ...]:
     return conv_args + conv_kwargs
 
 
-def cache_decorator(
-    function: Any = None, *, cache_size: int = 0
-) -> Callable[..., Any]:
+def cache_decorator(function: Any = None, *, cache_size: int = 0) -> Callable[..., Any]:
     """
     Function Caching decorator.
     Args:
@@ -106,9 +102,7 @@ class Isolated:
             raise TypeError("You cannot combine Isolated with Evaluated.")
 
 
-def smart_args(
-    function: Any = None, position_args: bool = False
-) -> Callable[..., Any]:
+def smart_args(function: Any = None, position_args: bool = False) -> Callable[..., Any]:
     """
     Decorator for analyzing arguments of the Isolated and Evaluated types.
     Args:

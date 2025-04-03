@@ -2,9 +2,7 @@ from typing import Callable, Any
 from functools import wraps
 
 
-def curry_explicit(
-    function: Callable[..., Any], arity: int
-) -> Callable[..., Any]:
+def curry_explicit(function: Callable[..., Any], arity: int) -> Callable[..., Any]:
     """
     A function for currying an accepted function.
     Args:
@@ -25,9 +23,7 @@ def curry_explicit(
     return wrapper
 
 
-def uncurry_explicit(
-    function: Callable[..., Any], arity: int
-) -> Callable[..., Any]:
+def uncurry_explicit(function: Callable[..., Any], arity: int) -> Callable[..., Any]:
     """
     A function for uncurrying an accepted function.
     Args:

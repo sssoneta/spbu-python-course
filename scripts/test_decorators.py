@@ -196,9 +196,7 @@ def test_repeated_call_evaluated() -> None:
 
     @smart_args(position_args=True)
     def check_evaluated(
-        x: Any = Evaluated(get_unique_value),
-        *,
-        y: Any = Evaluated(get_unique_value)
+        x: Any = Evaluated(get_unique_value), *, y: Any = Evaluated(get_unique_value)
     ) -> Any:
         return x, y
 
