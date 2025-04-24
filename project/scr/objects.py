@@ -16,7 +16,7 @@ class CardSuit(Enum):
             CardSuit.CLUBS: "♣",
             CardSuit.DIAMONDS: "♦",
             CardSuit.HEARTS: "♥",
-            CardSuit.SPADES: "♠"
+            CardSuit.SPADES: "♠",
         }[self]
 
 
@@ -51,7 +51,7 @@ class CardDeck:
         self.shuffle_cards()
 
     def _initialize_deck(self, num_decks: int) -> List[PlayingCard]:
-        ranks = [str(n) for n in range(2, 11)] + ['J', 'Q', 'K', 'A']
+        ranks = [str(n) for n in range(2, 11)] + ["J", "Q", "K", "A"]
         return [
             PlayingCard(suit, rank)
             for _ in range(num_decks)
@@ -99,7 +99,7 @@ class PlayerHand:
         for card in self.cards:
             if card.rank.isdigit():
                 total += int(card.rank)
-            elif card.rank in ('J', 'Q', 'K'):
+            elif card.rank in ("J", "Q", "K"):
                 total += 10
             else:  # Ace
                 total += 11
@@ -121,7 +121,7 @@ class PlayerHand:
         self.is_active = False
         self.status = GameResult.LOSE
 
-    def split_hand(self) -> Tuple['PlayerHand', 'PlayerHand']:
+    def split_hand(self) -> Tuple["PlayerHand", "PlayerHand"]:
         if len(self.cards) != 2:
             raise ValueError("Can only split with exactly two cards")
 

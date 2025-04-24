@@ -6,18 +6,18 @@ from project.scr.game import BlackjackGame, RoundPhase
 from project.scr.desk import BlackjackTable
 
 # Test card definitions
-ACE = PlayingCard(CardSuit.SPADES, 'A')
-KING = PlayingCard(CardSuit.HEARTS, 'K')
-QUEEN = PlayingCard(CardSuit.DIAMONDS, 'Q')
-JACK = PlayingCard(CardSuit.CLUBS, 'J')
-TEN = PlayingCard(CardSuit.SPADES, '10')
-NINE = PlayingCard(CardSuit.HEARTS, '9')
-EIGHT = PlayingCard(CardSuit.DIAMONDS, '8')
-SEVEN = PlayingCard(CardSuit.CLUBS, '7')
-SIX = PlayingCard(CardSuit.SPADES, '6')
-FIVE = PlayingCard(CardSuit.HEARTS, '5')
-FOUR = PlayingCard(CardSuit.DIAMONDS, '4')
-TWO = PlayingCard(CardSuit.CLUBS, '2')
+ACE = PlayingCard(CardSuit.SPADES, "A")
+KING = PlayingCard(CardSuit.HEARTS, "K")
+QUEEN = PlayingCard(CardSuit.DIAMONDS, "Q")
+JACK = PlayingCard(CardSuit.CLUBS, "J")
+TEN = PlayingCard(CardSuit.SPADES, "10")
+NINE = PlayingCard(CardSuit.HEARTS, "9")
+EIGHT = PlayingCard(CardSuit.DIAMONDS, "8")
+SEVEN = PlayingCard(CardSuit.CLUBS, "7")
+SIX = PlayingCard(CardSuit.SPADES, "6")
+FIVE = PlayingCard(CardSuit.HEARTS, "5")
+FOUR = PlayingCard(CardSuit.DIAMONDS, "4")
+TWO = PlayingCard(CardSuit.CLUBS, "2")
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def test_players():
         BlackjackPlayer(strategy=ScientificStrategy(), initial_bankroll=1000),
         BlackjackPlayer(strategy=HighRiskStrategy(), initial_bankroll=1000),
         BlackjackPlayer(strategy=ScientificStrategy(), initial_bankroll=1000),
-        BlackjackPlayer(initial_bankroll=1000)
+        BlackjackPlayer(initial_bankroll=1000),
     ]
 
 
@@ -64,19 +64,22 @@ def test_game_phases(test_players):
         RoundPhase.PLAYER_TURNS,
         RoundPhase.DEALER_TURN,
         RoundPhase.PAYOUTS,
-        RoundPhase.COMPLETION
+        RoundPhase.COMPLETION,
     ]
 
 
-@pytest.mark.parametrize("cards,expected_score", [
-    ([ACE, KING], 21),
-    ([NINE, TEN], 19),
-    ([ACE, ACE, NINE], 21),
-    ([TEN, FIVE, SIX], 21),
-    ([TEN, TEN, FIVE], -1),
-    ([ACE, ACE, ACE, ACE], 14),
-    ([JACK, QUEEN], 20)
-])
+@pytest.mark.parametrize(
+    "cards,expected_score",
+    [
+        ([ACE, KING], 21),
+        ([NINE, TEN], 19),
+        ([ACE, ACE, NINE], 21),
+        ([TEN, FIVE, SIX], 21),
+        ([TEN, TEN, FIVE], -1),
+        ([ACE, ACE, ACE, ACE], 14),
+        ([JACK, QUEEN], 20),
+    ],
+)
 def test_hand_scoring(cards, expected_score):
     """Test hand score calculation with various card combinations"""
     hand = PlayerHand(cards.copy())
@@ -110,5 +113,3 @@ def test_bankroll_management(test_players):
             assert player._bankroll < initial_bankrolls[i]
         elif game.table.player_hands[player][0].status == GameResult.PUSH:
             assert player._bankroll == initial_bankrolls[i]
-
-

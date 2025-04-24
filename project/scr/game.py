@@ -8,6 +8,7 @@ from project.scr.desk import BlackjackTable
 
 class RoundPhase(Enum):
     """Represents different phases of a blackjack round"""
+
     INITIALIZATION = auto()
     BETTING = auto()
     INITIAL_DEAL = auto()
@@ -91,7 +92,10 @@ class BlackjackGame:
                             break
 
                     elif action == PlayerAction.SPLIT:
-                        if len(hand.cards) == 2 and hand.cards[0].rank == hand.cards[1].rank:
+                        if (
+                            len(hand.cards) == 2
+                            and hand.cards[0].rank == hand.cards[1].rank
+                        ):
                             self.table.split_hand(player, i)
                             # Need to re-evaluate after split
                             continue
@@ -116,7 +120,9 @@ class BlackjackGame:
         while dealer_hand.calculate_value() not in (-1, 17, 18, 19, 20, 21):
             self.table.deal_card_to_hand(dealer_hand)
 
-        dealer_hand.status = GameResult.WIN if dealer_hand.calculate_value() != -1 else GameResult.BUST
+        dealer_hand.status = (
+            GameResult.WIN if dealer_hand.calculate_value() != -1 else GameResult.BUST
+        )
         self._notify_observers()
 
     def process_payouts(self) -> None:
@@ -191,7 +197,7 @@ class GameObserver:
             RoundPhase.PLAYER_TURNS: "Players making decisions...",
             RoundPhase.DEALER_TURN: "Dealer playing hand...",
             RoundPhase.PAYOUTS: "Calculating results...",
-            RoundPhase.COMPLETION: "Round complete!"
+            RoundPhase.COMPLETION: "Round complete!",
         }
         print(phase_descriptions.get(phase, ""))
 

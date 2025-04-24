@@ -68,8 +68,10 @@ class BlackjackTable:
         original_hand = self.player_hands[player][hand_index]
 
         # Verify split is possible
-        if len(original_hand.cards) != 2 or \
-                original_hand.cards[0].rank != original_hand.cards[1].rank:
+        if (
+            len(original_hand.cards) != 2
+            or original_hand.cards[0].rank != original_hand.cards[1].rank
+        ):
             return
 
         # Create two new hands from the split
@@ -104,7 +106,9 @@ class BlackjackTable:
         self.deal_card_to_hand(self.dealer.hand)
         self.deal_card_to_hand(self.dealer.hand, face_up=False)
 
-    def player_action(self, player: BlackjackPlayer, action: str, hand_index: int = 0) -> None:
+    def player_action(
+        self, player: BlackjackPlayer, action: str, hand_index: int = 0
+    ) -> None:
         """
         Process player action for specific hand
 
