@@ -37,7 +37,7 @@ class BlackjackGame:
 
     def _setup_observers(self) -> None:
         """Setup game state observers for UI updates"""
-        self.observers = []
+        self.observers: list = []
 
     def _notify_observers(self) -> None:
         """Notify all observers about game state changes"""
@@ -111,10 +111,6 @@ class BlackjackGame:
         """Handle the dealer's play"""
         self.current_phase = RoundPhase.DEALER_TURN
         dealer_hand = self.table.dealer.hand
-
-        # Reveal dealer's hole card
-        if len(dealer_hand.cards) > 1:
-            dealer_hand.cards[1].face_up = True
 
         # Dealer draws according to rules
         while dealer_hand.calculate_value() not in (-1, 17, 18, 19, 20, 21):
@@ -208,7 +204,7 @@ class GameObserver:
 
         # Display each player's hands
         for i, player in enumerate(table.players):
-            print(f"\nPlayer {i + 1} (Bankroll: {player.bankroll}):")
+            print(f"\nPlayer {i + 1} (Bankroll: {player._bankroll}):")
             for j, hand in enumerate(table.player_hands[player]):
                 print(f"  Hand {j + 1} (Bet: {hand.wager}):")
                 hand.display()

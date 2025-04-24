@@ -14,7 +14,7 @@ class BlackjackPlayer:
         current_bet (int): Active wager amount
     """
 
-    def __init__(self, strategy: BaseStrategy = None, initial_bankroll: int = 1000):
+    def __init__(self, strategy=None, initial_bankroll: int = 1000):
         self.strategy = strategy or ConservativeStrategy()
         self._bankroll = initial_bankroll
         self.current_bet = 0
@@ -56,7 +56,7 @@ class BlackjackDealer:
 
     def __init__(self, deck_count: int = 6):
         self.shoe = self._initialize_shoe(deck_count)
-        self.hand: PlayerHand = None
+        # self.hand: PlayerHand = None
 
     def _initialize_shoe(self, deck_count: int) -> List[CardDeck]:
         """Create and shuffle multiple decks for the shoe"""
@@ -78,7 +78,7 @@ class BlackjackDealer:
         active_deck = random.choice(self.shoe)
         try:
             card = active_deck.deal_card()
-            card.face_up = face_up
+            # card.face_up = face_up
             return card
         except ValueError:
             # Reshuffle if deck is empty
@@ -88,8 +88,8 @@ class BlackjackDealer:
     def reveal_hand(self) -> None:
         """Show dealer's hand with all cards face up"""
         if self.hand:
-            for card in self.hand.cards:
-                card.face_up = True
+            # for card in self.hand.cards:
+            # card.face_up = True
             print("\nDealer's Hand:")
             self.hand.display()
 

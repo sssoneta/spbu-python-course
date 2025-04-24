@@ -1,6 +1,6 @@
 from typing import List, Dict
 from project.scr.persons import BlackjackPlayer, BlackjackDealer
-from project.scr.objects import PlayerHand
+from project.scr.objects import PlayerHand, GameResult
 
 
 class BlackjackTable:
