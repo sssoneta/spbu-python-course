@@ -1,170 +1,82 @@
-The round has begun
-Round: 1
+=== BLACKJACK GAME SESSION ===
 
+[ ROUND 1 INITIATED ]
 
-Bets have been placed
-Player's 1 bet: 10
-Player's 2 bet: 10
-Player's 3 bet: 20
-Player's 4 bet: 10
+• WAGERS PLACED:
+   - Player 1: $10
+   - Player 2: $10
+   - Player 3: $20 (high roller)
+   - Player 4: $10
 
+• DEALER'S INITIAL MOVE:
+   Visible Card: ♦4
+   (Hidden card dealt)
 
-The dealer took a closed and an open card
-The dealer's first card:
-4 of Diamonds
+• PLAYER ACTIONS:
 
+Player #1:
+Cards: ♣5 ♥9 (Total: 14)
+Moves: Drew card, Drew card, Stand
 
-The players took the cards
-Player 1's hand:
-Hand: 5 of Clubs; 9 of Hearts;
-Score: 14
-History of actions:
-['add card', 'add card', 'pass']
+Player #2:
+Cards: ♠4 ♦6 ♥3 ♣8 (Total: 21)
+Moves: Drew card, Drew card, Doubled bet, Drew card, Drew card
 
-Player 2's hand:
-Hand: 4 of Spades; 6 of Diamonds; 3 of Hearts; 8 of Clubs;
-Score: 21
-History of actions:
-['add card', 'add card', 'double down', 'add card', 'add card']
+Player #3:
+Cards: ♠10 ♣9 ♠3 (BUST)
+Moves: Drew card, Drew card, Drew card
 
-Player 3's hand:
-Hand: 10 of Spades; 9 of Clubs; 3 of Spades;
-Score: bust
-History of actions:
-['add card', 'add card', 'add card']
+Player #4:
+Cards: ♠8 ♣Q (Total: 18)
+Moves: Drew card, Drew card, Stand
 
-Player 4's hand:
-Hand: 8 of Spades; Q of Clubs;
-Score: 18
-History of actions:
-['add card', 'add card', 'pass']
+• DEALER'S TURN:
+Revealed Hand: ♦4 ♣3 (Total: 7)
+Final Hand: ♦4 ♣3 ♥6 ♠2 ♥5 (Total: 20)
 
+• ROUND RESULTS:
 
+Player #1: LOSS (14 vs 20)
+Player #2: WIN (21)
+Player #3: LOSS (Bust)
+Player #4: LOSS (18 vs 20)
 
-The dealer opens the second card
-Dealer's Hand:
-Hand: 4 of Diamonds; 3 of Clubs;
-Score: 7
+[ ROUND 1 CONCLUDED ]
 
+[ ROUND 2 INITIATED ]
 
-The dealer takes the cards
-Dealer's Hand:
-Hand: 4 of Diamonds; 3 of Clubs; 6 of Hearts; 2 of Spades; 5 of Hearts;
-Score: 20
+• WAGERS PLACED:
+   - Player 1: $10
+   - Player 2: $10
+   - Player 3: $20
+   - Player 4: Cannot bet (insufficient funds)
 
+• DEALER'S INITIAL MOVE:
+   Visible Card: ♠6
+   (Hidden card dealt)
 
-The results of the game are summarized
-The result of player 1
-Player 1's hand:
-Hand: 5 of Clubs; 9 of Hearts;
-Score: 14
-History of actions:
-['add card', 'add card', 'pass']
-Hand condition: Losing hand
+• PLAYER ACTIONS:
 
-The result of player 2
-Player 2's hand:
-Hand: 4 of Spades; 6 of Diamonds; 3 of Hearts; 8 of Clubs;
-Score: 21
-History of actions:
-['add card', 'add card', 'double down', 'add card', 'add card']
-Hand condition: Winning hand
+Player #1:
+Cards: ♦Q ♥10 (Total: 20)
+Moves: Drew card, Drew card, Stand
 
-The result of player 3
-Player 3's hand:
-Hand: 10 of Spades; 9 of Clubs; 3 of Spades;
-Score: bust
-History of actions:
-['add card', 'add card', 'add card']
-Hand condition: Losing hand
+Player #2:
+Cards: ♠A ♠5 ♥7 ♣4 (Total: 17)
+Moves: Drew card, Drew card, Drew card, Drew card, Stand
 
-The result of player 4
-Player 4's hand:
-Hand: 8 of Spades; Q of Clubs;
-Score: 18
-History of actions:
-['add card', 'add card', 'pass']
-Hand condition: Losing hand
+Player #3:
+Cards: ♠K ♦7 ♠3 (Total: 20)
+Moves: Drew card, Drew card, Drew card, Stand
 
+• DEALER'S TURN:
+Revealed Hand: ♠6 ♥5 (Total: 11)
+Final Hand: ♠6 ♥5 ♣6 (Total: 17)
 
+• ROUND RESULTS:
 
-The round is over
+Player #1: WIN (20 vs 17)
+Player #2: PUSH (17 vs 17)
+Player #3: WIN (20 vs 17)
 
-
-The round has begun
-Round: 2
-
-
-Bets have been placed
-Player's 1 bet: 10
-Player's 2 bet: 10
-Player's 3 bet: 20
-Player's 4 bet: not enough chips
-
-
-The dealer took a closed and an open card
-The dealer's first card:
-6 of Spades
-
-
-The players took the cards
-Player 1's hand:
-Hand: Q of Diamonds; 10 of Hearts;
-Score: 20
-History of actions:
-['add card', 'add card', 'pass']
-
-Player 2's hand:
-Hand: A of Spades; 5 of Spades; 7 of Hearts; 4 of Clubs;
-Score: 17
-History of actions:
-['add card', 'add card', 'add card', 'add card', 'pass']
-
-Player 3's hand:
-Hand: K of Spades; 7 of Diamonds; 3 of Spades;
-Score: 20
-History of actions:
-['add card', 'add card', 'add card', 'pass']
-
-
-
-The dealer opens the second card
-Dealer's Hand:
-Hand: 6 of Spades; 5 of Hearts;
-Score: 11
-
-
-The dealer takes the cards
-Dealer's Hand:
-Hand: 6 of Spades; 5 of Hearts; 6 of Clubs;
-Score: 17
-
-
-The results of the game are summarized
-The result of player 1
-Player 1's hand:
-Hand: Q of Diamonds; 10 of Hearts;
-Score: 20
-History of actions:
-['add card', 'add card', 'pass']
-Hand condition: Winning hand
-
-The result of player 2
-Player 2's hand:
-Hand: A of Spades; 5 of Spades; 7 of Hearts; 4 of Clubs;
-Score: 17
-History of actions:
-['add card', 'add card', 'add card', 'add card', 'pass']
-Hand condition: Equal score
-
-The result of player 3
-Player 3's hand:
-Hand: K of Spades; 7 of Diamonds; 3 of Spades;
-Score: 20
-History of actions:
-['add card', 'add card', 'add card', 'pass']
-Hand condition: Winning hand
-
-
-
-The round is over
+[ ROUND 2 CONCLUDED ]

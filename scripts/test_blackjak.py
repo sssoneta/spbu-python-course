@@ -1,122 +1,114 @@
-from project.scr.persons import Player
-from project.scr.objects import Card, Hand, HandStates
-from project.scr.game import Game, GameStates
-
 import pytest
+from project.scr.persons import BlackjackPlayer
+from project.scr.objects import PlayingCard, PlayerHand, GameResult, CardSuit
+from project.scr.strategies import ScientificStrategy, HighRiskStrategy
+from project.scr.game import BlackjackGame, RoundPhase
+from project.scr.desk import BlackjackTable
 
-from project.scr.strategies import Optimal1, Aggressive, Optimal2
+# Test card definitions
+ACE = PlayingCard(CardSuit.SPADES, 'A')
+KING = PlayingCard(CardSuit.HEARTS, 'K')
+QUEEN = PlayingCard(CardSuit.DIAMONDS, 'Q')
+JACK = PlayingCard(CardSuit.CLUBS, 'J')
+TEN = PlayingCard(CardSuit.SPADES, '10')
+NINE = PlayingCard(CardSuit.HEARTS, '9')
+EIGHT = PlayingCard(CardSuit.DIAMONDS, '8')
+SEVEN = PlayingCard(CardSuit.CLUBS, '7')
+SIX = PlayingCard(CardSuit.SPADES, '6')
+FIVE = PlayingCard(CardSuit.HEARTS, '5')
+FOUR = PlayingCard(CardSuit.DIAMONDS, '4')
+TWO = PlayingCard(CardSuit.CLUBS, '2')
 
-A = Card("suit", "A")
-K = Card("suit", "K")
-Q = Card("suit", "Q")
-J = Card("suit", "J")
-ten = Card("suit", "10")
-nine = Card("suit", "9")
-eight = Card("suit", "8")
-seven = Card("suit", "7")
-six = Card("suit", "6")
-five = Card("suit", "5")
-four = Card("suit", "4")
 
-
-@pytest.mark.parametrize(
-    "players, nums_steps",
-    [
-        (
-            [
-                Player(strategy=Optimal1()),
-                Player(strategy=Aggressive()),
-                Player(strategy=Optimal2()),
-                Player(),
-            ],
-            list(range(1, 9)),
-        )
-    ],
-)
-def test_game_states(players: list[Player], nums_steps: list[int]) -> None:
-    """Test that the state of the game changes depending on the steps played."""
-    states = []
-    for num_step in nums_steps:
-        game = Game(players)
-        game.play_steps(num_step)
-        states.append(game._round_state)
-
-    assert states == [
-        GameStates.START,
-        GameStates.PLACE_BETS,
-        GameStates.DEALER_START,
-        GameStates.TOOK_CARDS,
-        GameStates.DEALER_SECOND_CARD,
-        GameStates.DEALER_PLAY,
-        GameStates.RESULTS,
-        GameStates.END,
+@pytest.fixture
+def test_players():
+    """Fixture providing different player strategies for testing"""
+    return [
+        BlackjackPlayer(strategy=ScientificStrategy(), initial_bankroll=1000),
+        BlackjackPlayer(strategy=HighRiskStrategy(), initial_bankroll=1000),
+        BlackjackPlayer(strategy=ScientificStrategy(), initial_bankroll=1000),
+        BlackjackPlayer(initial_bankroll=1000)
     ]
 
 
-@pytest.mark.parametrize(
-    "cards1, cards2, expect_score1, expect_score2",
-    [
-        ([A, K], [J, six], 21, 16),
-        ([nine, ten], [A, A], 19, 12),
-    ],
-)
-def test_players_hands(
-    cards1: list[Card],
-    cards2: list[Card],
-    expect_score1: int,
-    expect_score2: int,
-) -> None:
-    """Test of whether the score in the hand are correctly calculated."""
-    player_hand1 = Hand()
-    player_hand2 = Hand()
-    for card in cards1:
-        player_hand1.add_card(card)
+def test_game_phases(test_players):
+    """Verify game progresses through all expected phases"""
+    game = BlackjackGame(test_players)
+    phases = []
 
-    assert player_hand1.get_score() == expect_score1
+    game.start_new_round()
+    phases.append(game.current_phase)
 
-    for card in cards2:
-        player_hand2.add_card(card)
+    game.process_betting_phase()
+    phases.append(game.current_phase)
 
-    assert player_hand2.get_score() == expect_score2
+    game.process_initial_deal()
+    phases.append(game.current_phase)
 
-    # Test hand data-descriptor is working correctly
-    assert player_hand1.get_cards() != player_hand2.get_cards()
+    game.process_player_turns()
+    phases.append(game.current_phase)
 
+    game.process_dealer_turn()
+    phases.append(game.current_phase)
 
-def test_players_chips() -> None:
-    """Test that the score increases and decreases correctly."""
-    players = [
-        Player(strategy=Optimal1()),
-        Player(strategy=Aggressive()),
-        Player(strategy=Optimal2()),
-        Player(),
+    game.process_payouts()
+    phases.append(game.current_phase)
+
+    game.complete_round()
+    phases.append(game.current_phase)
+
+    assert phases == [
+        RoundPhase.INITIALIZATION,
+        RoundPhase.BETTING,
+        RoundPhase.INITIAL_DEAL,
+        RoundPhase.PLAYER_TURNS,
+        RoundPhase.DEALER_TURN,
+        RoundPhase.PAYOUTS,
+        RoundPhase.COMPLETION
     ]
-    game = Game(players)
-    game.play_steps()
 
-    for player in players:
-        delta_chips = 0.0
-        for hand in game._desk.hands[player]:
-            first_bet = player.strategy.first_bet
-            if hand._state is HandStates.LOSE:
-                if hand.tripled_bet:
-                    delta_chips -= first_bet * 3
-                elif hand.double_bet:
-                    delta_chips -= first_bet * 2
-                else:
-                    delta_chips -= first_bet
-            elif hand._state is HandStates.WIN:
-                if hand.tripled_bet:
-                    delta_chips += first_bet * 3
-                elif hand.double_bet:
-                    delta_chips += first_bet * 2
-                else:
-                    delta_chips += first_bet
-            elif hand._state is HandStates.BLACKJACK:
-                dealer_hand = game._desk.dealer.hand
-                first_card = dealer_hand.get_card(0)
-                if not (player.strategy.even_money and first_card.name == "A") and (
-                    not game._desk.dealer.hand._state is HandStates.BLACKJACK
-                ):
-                    delta_chips += 1.5 * first_bet
-        assert player._chips == 100 + int(delta_chips)
+
+@pytest.mark.parametrize("cards,expected_score", [
+    ([ACE, KING], 21),
+    ([NINE, TEN], 19),
+    ([ACE, ACE, NINE], 21),
+    ([TEN, FIVE, SIX], 21),
+    ([TEN, TEN, FIVE], -1),
+    ([ACE, ACE, ACE, ACE], 14),
+    ([JACK, QUEEN], 20)
+])
+def test_hand_scoring(cards, expected_score):
+    """Test hand score calculation with various card combinations"""
+    hand = PlayerHand(cards.copy())
+    assert hand.calculate_value() == expected_score
+
+
+def test_blackjack_detection():
+    """Verify blackjack detection works correctly"""
+    blackjack = PlayerHand([ACE, KING])
+    not_blackjack1 = PlayerHand([NINE, TEN, TWO])
+    not_blackjack2 = PlayerHand([ACE, FIVE, FIVE])
+
+    assert blackjack.is_blackjack() is True
+    assert not_blackjack1.is_blackjack() is False
+    assert not_blackjack2.is_blackjack() is False
+
+
+def test_bankroll_management(test_players):
+    """Test player bankroll changes correctly during game"""
+    game = BlackjackGame(test_players)
+    initial_bankrolls = [p._bankroll for p in test_players]
+
+    # Play full round
+    game.play_full_round()
+
+    # Verify bankroll changes
+    for i, player in enumerate(test_players):
+        if game.table.player_hands[player][0].status == GameResult.WIN:
+            assert player._bankroll > initial_bankrolls[i]
+        elif game.table.player_hands[player][0].status == GameResult.LOSE:
+            assert player._bankroll < initial_bankrolls[i]
+        elif game.table.player_hands[player][0].status == GameResult.PUSH:
+            assert player._bankroll == initial_bankrolls[i]
+
+

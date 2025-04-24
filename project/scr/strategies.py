@@ -1,237 +1,128 @@
-from enum import Enum
-from project.scr.objects import Hand
-from project.scr.objects import Card
+from enum import Enum, auto
+from typing import Optional
+from dataclasses import dataclass
+from project.scr.objects import PlayerHand, PlayingCard
 
 
-class Action(Enum):
-    """Enumeration for actions taken by the player."""
-
-    PASS = 1
-    TAKE = 2
-    SPLIT = 3
-    DOUBLE = 4
-    TRIPLING = 5
-    SURRENDER = 6
-
-
-class Strategy:
-    """
-    Parent class for strategies
-
-    Methods:
-    ______
-    'play(player_hand: Hand, dealer_card: Card) -> Action':
-        The method responsible for taking action in a specific situation.
-    """
-
-    first_bet = 10
-    even_money = False
-
-    def play(self, player_hand: Hand, dealer_card: Card) -> Action:
-        """
-        The method responsible for taking action in a specific situation.
-
-        Args:
-            player_hand (Hand): the hand of the player making the decision.
-            dealer_card (Card): the dealer's card that the players see.
-
-        Results:
-            return (Action): the action taken by the player.
-        """
-        raise NotImplementedError("Subclass must implement play method")
+class PlayerAction(Enum):
+    """Defines possible actions a player can take in blackjack"""
+    STAND = auto()
+    HIT = auto()
+    SPLIT = auto()
+    DOUBLE = auto()
+    TRIPLE = auto()
+    SURRENDER = auto()
 
 
-class Basic(Strategy):
-    def __init__(self) -> None:
-        self.even_money = True
+@dataclass
+class BaseStrategy:
+    """Abstract base class for all blackjack strategies"""
+    min_bet: int = 10
+    use_insurance: bool = False
 
-    def play(self, player_hand: Hand, dealer_card: Card) -> Action:
-        score = player_hand.get_score()
-        if score < 17:
-            return Action.TAKE
-        return Action.PASS
-
-
-class Optimal1(Strategy):
-    def play(self, player_hand: Hand, dealer_card: Card) -> Action:
-        score = player_hand.get_score()
-        cards = player_hand.get_cards()
-        dealer_card_name = dealer_card.name
-
-        split_res = check_split(cards, dealer_card.name)
-        if not split_res is None:
-            return split_res
-
-        double_res = check_double(score, dealer_card_name)
-        if not double_res is None and not player_hand.double_bet:
-            return double_res
-
-        if "A" in set(card.name for card in cards) and len(cards) == 2:
-            soft_hands = check_soft_hands(score - 10, dealer_card_name)
-            if not soft_hands is None:
-                return soft_hands
-
-        steady_hand = check_steady_hands(score, dealer_card_name)
-        if not steady_hand is None:
-            return steady_hand
-
-        if score >= 17:
-            return Action.PASS
-        return Action.TAKE
+    def decide_action(self, hand: PlayerHand, dealer_upcard: PlayingCard) -> PlayerAction:
+        """Determine optimal action based on game state"""
+        raise NotImplementedError("Strategy subclass must implement decide_action")
 
 
-class Aggressive(Strategy):
-    def __init__(self) -> None:
-        self.first_bet = 20
+class ConservativeStrategy(BaseStrategy):
+    """Basic strategy with minimal risk"""
 
-    def play(self, player_hand: Hand, dealer_card: Card) -> Action:
-        score = player_hand.get_score()
-        dealer_card_name = dealer_card.name
+    def __init__(self):
+        super().__init__(use_insurance=True)
 
-        if score <= 6:
-            return Action.DOUBLE
+    def decide_action(self, hand: PlayerHand, dealer_upcard: PlayingCard) -> PlayerAction:
+        hand_value = hand.calculate_value()
 
-        double_res = check_double(score, dealer_card_name)
-        if not double_res is None and player_hand.double_bet:
-            return Action.TRIPLING
-
-        if score > 19:
-            return Action.PASS
-        return Action.TAKE
+        if hand_value < 17:
+            return PlayerAction.HIT
+        return PlayerAction.STAND
 
 
-class Optimal2(Strategy):
-    def play(self, player_hand: Hand, dealer_card: Card) -> Action:
-        score = player_hand.get_score()
-        cards = player_hand.get_cards()
-        dealer_card_name = dealer_card.name
+class ScientificStrategy(BaseStrategy):
+    """Mathematically optimal strategy based on probability"""
 
-        split_res = check_split(cards, dealer_card_name)
-        if not split_res is None:
-            return split_res
+    def decide_action(self, hand: PlayerHand, dealer_upcard: PlayingCard) -> PlayerAction:
+        cards = hand.cards
+        hand_value = hand.calculate_value()
+        dealer_rank = dealer_upcard.rank
 
-        if not dealer_card_name in {"10", "J", "Q", "K", "A"}:
-            if score in {11, 10}:
-                return Action.DOUBLE
-            elif score <= 16:
-                return Action.TAKE
-        elif score <= 16:
-            return Action.TAKE
+        # Check for split opportunities first
+        split_action = self._evaluate_split(cards, dealer_rank)
+        if split_action:
+            return split_action
 
-        if score >= 17:
-            return Action.PASS
-        return Action.TAKE
+        # Check for double down opportunities
+        double_action = self._evaluate_double(hand_value, dealer_rank)
+        if double_action and len(cards) == 2:
+            return double_action
 
+        # Handle soft totals (ace counted as 11)
+        if self._is_soft_hand(cards):
+            return self._handle_soft_hand(hand_value - 10, dealer_rank)
 
-def check_split(cards: list[Card], dealer_card_name: str) -> Action | None:
-    """
-    The function checks whether it is worth doing a split.
+        # Standard decision making
+        return self._handle_hard_hand(hand_value, dealer_rank)
 
-    Args:
-        cards (list[Card]): the cards are in the player's hand.
-        dealer_card_name (str): the dealer's open card.
+    def _evaluate_split(self, cards: list[PlayingCard], dealer_rank: str) -> Optional[PlayerAction]:
+        if len(cards) != 2 or cards[0].rank != cards[1].rank:
+            return None
 
-    Returns:
-        result (Action | None): the action taken.
-    """
-    if len(cards) != 2:
+        card_rank = cards[0].rank
+        if card_rank in ('A', '8'):
+            return PlayerAction.SPLIT if dealer_rank != 'A' else PlayerAction.HIT
+        elif card_rank == '5':
+            return PlayerAction.DOUBLE
+        elif card_rank in ('2', '3', '7'):
+            return PlayerAction.SPLIT if dealer_rank in ('2', '3', '4', '5', '6', '7') else PlayerAction.HIT
+        elif card_rank in ('4', '6', '9'):
+            # Additional split logic for these ranks
+            pass
+
         return None
-    if cards[1].name == cards[0].name:
-        match cards[0].name:
-            case "A" | "8":
-                if dealer_card_name != "A":
-                    return Action.SPLIT
-                return Action.TAKE
-            case "5":
-                return Action.DOUBLE
 
-            case "4":
-                if dealer_card_name in {"2", "3", "4", "5", "6"}:
-                    return Action.SPLIT
-            case "9":
-                if dealer_card_name in {"7", "10", "11"}:
-                    return Action.PASS
-                return Action.SPLIT
-            case "6":
-                if dealer_card_name in {"2", "3", "4", "5", "6"}:
-                    return Action.SPLIT
-                return Action.TAKE
-            case "2" | "3" | "7":
-                if dealer_card_name in {"2", "3", "4", "5", "6", "7"}:
-                    return Action.SPLIT
-                return Action.TAKE
-    return None
+    def _evaluate_double(self, hand_value: int, dealer_rank: str) -> Optional[PlayerAction]:
+        if hand_value == 9 and dealer_rank in ('2', '3', '4', '5', '6'):
+            return PlayerAction.DOUBLE
+        elif hand_value in (10, 11) and dealer_rank not in ('A', '10', 'J', 'Q', 'K'):
+            return PlayerAction.DOUBLE
+        return None
 
+    def _is_soft_hand(self, cards: list[PlayingCard]) -> bool:
+        return any(card.rank == 'A' for card in cards) and \
+               sum(11 if card.rank == 'A' else
+                   10 if card.rank in ('J', 'Q', 'K') else
+                   int(card.rank) for card in cards) <= 21
 
-def check_double(score: int, dealer_card_name: str) -> Action | None:
-    """
-    A function that checks whether it is worth doubling the bet.
+    def _handle_soft_hand(self, hand_value: int, dealer_rank: str) -> PlayerAction:
+        if hand_value <= 7:
+            return PlayerAction.HIT if dealer_rank in ('9', '10', 'J', 'Q', 'K', 'A') else PlayerAction.DOUBLE
+        elif hand_value == 8:
+            return PlayerAction.STAND if dealer_rank in ('2', '3', '4', '5', '6') else PlayerAction.HIT
+        else:
+            return PlayerAction.STAND
 
-    Args:
-        score (int): the player's current score.
-        dealer_card_name (str): the dealer's open card.
-
-    Returns:
-        result (Action | None): the action taken.
-    """
-    match score:
-        case 9:
-            if dealer_card_name in {"2", "3", "4", "5", "6"}:
-                return Action.DOUBLE
-            return Action.TAKE
-        case 10 | 11:
-            if dealer_card_name != "A":
-                if score == 11 or dealer_card_name in {"10", "J", "Q", "K"}:
-                    return Action.DOUBLE
-            return Action.TAKE
-    return None
+    def _handle_hard_hand(self, hand_value: int, dealer_rank: str) -> PlayerAction:
+        if hand_value <= 11:
+            return PlayerAction.HIT
+        elif 12 <= hand_value <= 16:
+            return PlayerAction.STAND if dealer_rank in ('2', '3', '4', '5', '6') else PlayerAction.HIT
+        else:
+            return PlayerAction.STAND
 
 
-def check_soft_hands(score: int, dealer_card_name: str) -> Action | None:
-    """
-    The decision-making function for a soft hand.
+class HighRiskStrategy(BaseStrategy):
+    """Aggressive betting strategy with higher risk/reward"""
 
-    Args:
-        score (int): the player's current score.
-        dealer_card_name (str): the dealer's open card.
+    def __init__(self):
+        super().__init__(min_bet=20)
 
-    Returns:
-        result (Action | None): the action taken.
-    """
-    match score:
-        case 3 | 4 | 5 | 6 | 7:
-            if dealer_card_name in {"2", "3", "4", "5", "6"}:
-                return Action.DOUBLE
-            return Action.TAKE
-        case 8:
-            if dealer_card_name in {"9", "10", "J", "Q", "K", "A"}:
-                return Action.TAKE
-            return Action.PASS
-        case 9 | 10 | 11:
-            return Action.PASS
-    return None
+    def decide_action(self, hand: PlayerHand, dealer_upcard: PlayingCard) -> PlayerAction:
+        hand_value = hand.calculate_value()
 
-
-def check_steady_hands(score: int, dealer_card_name: str) -> Action | None:
-    """
-    The decision-making function for a steady hand.
-
-    Args:
-        score (int): the player's current score.
-        dealer_card_name (str): the dealer's open card.
-
-    Returns:
-        result (Action | None): the action taken.
-    """
-    match score:
-        case 4 | 5 | 6 | 7 | 8:
-            return Action.TAKE
-
-        case 12 | 13 | 14 | 15 | 16:
-            if dealer_card_name in {"2", "3", "4", "5", "6"}:
-                return Action.PASS
-            return Action.TAKE
-
-        case 17 | 18 | 19 | 20 | 21:
-            return Action.PASS
-    return None
+        if hand_value <= 6:
+            return PlayerAction.DOUBLE
+        elif hand_value <= 15:
+            return PlayerAction.HIT
+        else:
+            return PlayerAction.STAND

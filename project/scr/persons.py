@@ -1,70 +1,101 @@
-from project.scr.objects import Deck, Hand, Card
+from typing import List
 import random
-from project.scr.strategies import Basic, Strategy
+from project.scr.objects import CardDeck, PlayerHand, PlayingCard
+from project.scr.strategies import BaseStrategy, ConservativeStrategy
 
 
-class Player:
+class BlackjackPlayer:
     """
-    The player's class stores the number of chips and the strategy of the game.
+    Represents a player in blackjack game with betting capabilities and strategy.
 
-    Methods:
-    -------
-    'diff_chips(delta: int) -> None':
-        Calculates the difference of chips.
-
-    'check_bet(self, bet: int) -> bool':
-        Checks if the player has enough chips to bet.
+    Attributes:
+        strategy (BaseStrategy): The playing strategy to use
+        bankroll (int): Current chip count
+        current_bet (int): Active wager amount
     """
 
-    def __init__(self, strategy: Strategy = Basic(), chips: int = 100) -> None:
-        """Initializing a Player object."""
-        self.strategy = strategy
-        self._chips = chips
+    def __init__(self, strategy: BaseStrategy = None, initial_bankroll: int = 1000):
+        self.strategy = strategy or ConservativeStrategy()
+        self._bankroll = initial_bankroll
+        self.current_bet = 0
+        self.active_hands: List[PlayerHand] = []
 
-    def diff_chips(self, delta: int) -> None:
-        """Calculates the difference of chips."""
-        self._chips += delta
+    def adjust_bankroll(self, amount: int) -> None:
+        """Modify player's chip count by specified amount"""
+        self._bankroll += amount
 
-    def check_bet(self, bet: int) -> bool:
-        """Checks if the player has enough chips to bet."""
-        if bet > self._chips:
-            return False
-        return True
+    def can_place_bet(self, amount: int) -> bool:
+        """Check if player has sufficient funds for a bet"""
+        return 0 < amount <= self._bankroll
+
+    def place_bet(self, amount: int) -> bool:
+        """Attempt to place a wager, returns True if successful"""
+        if self.can_place_bet(amount):
+            self.current_bet = amount
+            self._bankroll -= amount
+            return True
+        return False
+
+    def clear_hands(self) -> None:
+        """Reset all active hands for new round"""
+        self.active_hands = []
+
+    def add_hand(self, hand: PlayerHand) -> None:
+        """Add a new hand to player's active hands"""
+        self.active_hands.append(hand)
 
 
-class Dealer:
+class BlackjackDealer:
     """
-    The dealer's class that stores the dealer's decks and hand.
+    Manages the dealer's operations including card dealing and game flow.
 
-    Methods:
-    -------
-    'give_card() -> Card':
-        A method for extracting a card from the deck.
-
-    'show_hand() -> None':
-        A method for displaying information about the dealer's hand in the console.
-
-    'restart() -> None':
-        A method that returns the dealer's state to the beginning of the game.
+    Attributes:
+        shoe (List[CardDeck]): Collection of card decks in play
+        hand (PlayerHand): Dealer's current hand
     """
 
-    def __init__(self, num_decks: int) -> None:
-        """Initializing a Dealer object."""
-        self._num_decks = num_decks
-        self.hand = Hand()
-        self._decks = [Deck() for _ in range(num_decks)]
+    def __init__(self, deck_count: int = 6):
+        self.shoe = self._initialize_shoe(deck_count)
+        self.hand: PlayerHand = None
 
-    def give_card(self) -> Card:
-        """A method for extracting a card from the deck."""
-        id_deck = random.randint(0, self._num_decks - 1)
-        return self._decks[id_deck].pull()
+    def _initialize_shoe(self, deck_count: int) -> List[CardDeck]:
+        """Create and shuffle multiple decks for the shoe"""
+        decks = [CardDeck() for _ in range(deck_count)]
+        for deck in decks:
+            deck.shuffle_cards()
+        return decks
 
-    def show_hand(self) -> None:
-        """A method for displaying information about the dealer's hand in the console."""
-        print("Dealer's Hand:")
-        self.hand.show_hand()
+    def deal_card(self, face_up: bool = True) -> PlayingCard:
+        """
+        Deal a card from random deck in shoe
 
-    def restart(self) -> None:
-        """A method that returns the dealer's state to the beginning of the game."""
-        self.hand = Hand()
-        self._decks = [Deck() for _ in range(self._num_decks)]
+        Args:
+            face_up: Whether card should be dealt face up
+
+        Returns:
+            PlayingCard: The dealt card
+        """
+        active_deck = random.choice(self.shoe)
+        try:
+            card = active_deck.deal_card()
+            card.face_up = face_up
+            return card
+        except ValueError:
+            # Reshuffle if deck is empty
+            self.shoe = self._initialize_shoe(len(self.shoe))
+            return self.deal_card(face_up)
+
+    def reveal_hand(self) -> None:
+        """Show dealer's hand with all cards face up"""
+        if self.hand:
+            for card in self.hand.cards:
+                card.face_up = True
+            print("\nDealer's Hand:")
+            self.hand.display()
+
+    def new_round(self) -> None:
+        """Prepare dealer for new game round"""
+        self.hand = PlayerHand([])
+        # Check if shoe needs replenishing
+        if sum(deck.remaining for deck in self.shoe) < 52:
+            self.shoe = self._initialize_shoe(len(self.shoe))

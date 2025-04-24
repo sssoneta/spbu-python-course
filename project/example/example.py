@@ -1,14 +1,12 @@
-from project.scr.persons import Player
-from project.scr.strategies import Aggressive, Optimal1, Optimal2
-from project.scr.game import Game
+from project.scr.persons import BlackjackPlayer
+from project.scr.strategies import ConservativeStrategy
+from project.scr.game import BlackjackGame
 
-
+# Минимальный рабочий пример с одной стратегией
 players = [
-    Player(strategy=Optimal1()),
-    Player(strategy=Optimal2()),
-    Player(strategy=Aggressive()),
-    Player(chips=15),
+    BlackjackPlayer(strategy=ConservativeStrategy(), initial_bankroll=100),
+    BlackjackPlayer(initial_bankroll=100)  # Использует Conservative по умолчанию
 ]
-blackjack = Game(players)
-blackjack.play_round_with_show_states()
-blackjack.play_round_with_show_states()
+
+game = BlackjackGame(players=players, num_decks=1)  # 1 колода для простоты
+game.play_full_round()

@@ -1,368 +1,209 @@
-from project.scr.objects import HandStates, Card, Hand
-from project.scr.persons import Player
-from project.scr.strategies import Action
-from project.scr.desk import Desk
-from enum import Enum
+from enum import Enum, auto
+from typing import List, Dict
+from project.scr.objects import PlayerHand, PlayingCard, GameResult
+from project.scr.persons import BlackjackPlayer, BlackjackDealer
+from project.scr.strategies import PlayerAction, BaseStrategy
+from project.scr.desk import BlackjackTable
 
 
-def show_hand_player(hand: Hand, id_player: int) -> None:
-    print(f"Player {id_player + 1}'s hand:")
-    hand.show_hand()
+class RoundPhase(Enum):
+    """Represents different phases of a blackjack round"""
+    INITIALIZATION = auto()
+    BETTING = auto()
+    INITIAL_DEAL = auto()
+    PLAYER_TURNS = auto()
+    DEALER_TURN = auto()
+    PAYOUTS = auto()
+    COMPLETION = auto()
 
 
-class GameStates(Enum):
-    """Enum to indicate the state of the game."""
-
-    START = "The round has begun"
-    PLACE_BETS = "Bets have been placed"
-    DEALER_START = "The dealer took a closed and an open card"
-    TOOK_CARDS = "The players took the cards"
-    DEALER_SECOND_CARD = "The dealer opens the second card"
-    DEALER_PLAY = "The dealer takes the cards"
-    RESULTS = "The results of the game are summarized"
-    END = "The round is over"
-
-
-class Game:
+class BlackjackGame:
     """
-    The controller class for the game table.
-    It contains information about the players,
-    the current state of the game and the game table.
+    Controls the flow of a blackjack game with multiple players and rounds.
 
-    Methods:
-    -------
-    `_show_state() -> None`:
-        The method of displaying information depending on the current state of the game.
-
-    `_start_game() -> None`:
-        Sets the initial parameters before starting the game.
-
-    `_place_bets() -> None`:
-        The players place their first bets.
-
-    `_dealer_start() -> None`:
-        The dealer starts the game.
-
-    `_take_cards() -> None`:
-        The players take the cards according to the strategy.
-
-    `_dealer_second_card() -> None`:
-        The dealer opens the second card.
-
-    `_dealer_play() -> None`:
-        The dealer takes the missing cards.
-
-    `_round_results() -> None`:
-        The results of the game are summarized.
-
-    `_end_round() -> None`:
-        Completes the round.
-
-    `_play_with_player(id_player: int, dealer_card: Card) -> bool`:
-        Player takes the cards depending on the strategy.
-
-    `get_state() -> GameStates`:
-        Returns the game state.
-
-    `play_steps(num_steps: int = 8) -> None`:
-        Performs the first n steps of the game.
-
-    'play_round_with_show_states(self) -> None'
-        Starts a full round and outputs information to the console at each stage.
+    Attributes:
+        table (BlackjackTable): The game table with players and dealer
+        current_phase (RoundPhase): Current game phase
+        round_number (int): Current round count
     """
 
-    def __init__(self, players: list[Player], dealer_num_deck: int = 1) -> None:
-        """Initializing a Game object"""
-        self._desk = Desk(players, dealer_num_deck)
-        self._num_round = 0
-        self._round_state = GameStates.START
+    def __init__(self, players: List[BlackjackPlayer], num_decks: int = 6):
+        """Initialize a new blackjack game session"""
+        self.table = BlackjackTable(players, num_decks)
+        self.current_phase = RoundPhase.INITIALIZATION
+        self.round_number = 0
+        self._setup_observers()
 
-    def _show_state(self) -> None:
-        """The method of displaying information depending on the current state of the game."""
-        print(self._round_state.value)
-        match self._round_state:
-            case GameStates.START:
-                print("Round:", self._num_round)
-            case GameStates.PLACE_BETS:
-                for id_player, player in enumerate(self._desk.players):
-                    self._desk.hands[player][0].show_bet(id_player)
-            case GameStates.TOOK_CARDS:
-                for id_player, player in enumerate(self._desk.players):
-                    if self._desk.hands[player][0].get_state() is HandStates.OUT:
-                        continue
-                    for hand in self._desk.hands[player]:
-                        show_hand_player(hand, id_player)
-                        hand.show_history()
-                    print()
-            case GameStates.RESULTS:
-                for id_player, player in enumerate(self._desk.players):
-                    if self._desk.hands[player][0].get_state() is HandStates.OUT:
-                        continue
-                    print(f"The result of player {id_player + 1}")
-                    for hand in self._desk.hands[player]:
-                        show_hand_player(hand, id_player)
-                        hand.show_history()
-                        hand.show_state()
-                    print()
-            case GameStates.DEALER_START:
-                print("The dealer's first card:")
-                print(self._desk.dealer.hand.get_card(0))
-            case GameStates.DEALER_PLAY:
-                self._desk.dealer.show_hand()
-            case GameStates.DEALER_SECOND_CARD:
-                self._desk.dealer.show_hand()
-        print("\n")
+    def _setup_observers(self) -> None:
+        """Setup game state observers for UI updates"""
+        self.observers = []
 
-    def _start_game(self) -> None:
-        """Sets the initial parameters before starting the game."""
-        self._round_state = GameStates.START
-        self._num_round += 1
-        self._desk.next()
+    def _notify_observers(self) -> None:
+        """Notify all observers about game state changes"""
+        for observer in self.observers:
+            observer.update(self)
 
-    def _place_bets(self) -> None:
-        """The players place their first bets."""
-        self._round_state = GameStates.PLACE_BETS
-        self._desk.place_first_bets()
+    def start_new_round(self) -> None:
+        """Begin a new round of blackjack"""
+        self.round_number += 1
+        self.current_phase = RoundPhase.INITIALIZATION
+        self.table.start_new_round()
+        self._notify_observers()
 
-    def _dealer_start(self) -> None:
-        """The dealer took a closed and an open card."""
-        self._round_state = GameStates.DEALER_START
-        self._desk.dealer_give_card(self._desk.dealer.hand)
-        self._desk.dealer_give_card(self._desk.dealer.hand)
+    def process_betting_phase(self) -> None:
+        """Handle the betting phase of the round"""
+        self.current_phase = RoundPhase.BETTING
+        self.table.place_initial_bets()
+        self._notify_observers()
 
-    def _take_cards(self) -> None:
-        """The players take the cards according to the strategy."""
-        self._round_state = GameStates.TOOK_CARDS
-        dealer_card = self._desk.dealer.hand.get_card(0)
-        for id_player, player in enumerate(self._desk.players):
-            player_hand = self._desk.hands[player][0]
-            if not player_hand.in_playing:
-                continue
-            self._desk.dealer_give_card(self._desk.hands[player][0])
-            self._desk.dealer_give_card(self._desk.hands[player][0])
+    def process_initial_deal(self) -> None:
+        """Perform the initial card deal"""
+        self.current_phase = RoundPhase.INITIAL_DEAL
+        self._notify_observers()
 
-            if player_hand.check_blackjack():
-                player_hand._state = HandStates.BLACKJACK
-            if (
-                player_hand.get_state() is HandStates.BLACKJACK
-                and not self._desk.dealer.hand.get_card(0).name
-                in {
-                    "10",
-                    "J",
-                    "Q",
-                    "K",
-                    "A",
-                }
-            ):
-                player.diff_chips(int(player_hand.get_bet() * 2.5))
-                player_hand.game_over()
-                continue
-            elif (
-                player_hand.get_state() is HandStates.BLACKJACK
-                and self._desk.dealer.hand.get_card(0).name == "A"
-            ):
-                if player.strategy.even_money:
-                    player_hand.even_money()
-                    player.diff_chips(int(player_hand.get_bet() * 2))
-                    player_hand.game_over()
+    def process_player_turns(self) -> None:
+        """Handle all player decisions"""
+        self.current_phase = RoundPhase.PLAYER_TURNS
+        dealer_upcard = self.table.dealer.hand.cards[0]
+
+        for player in self.table.players:
+            for i, hand in enumerate(self.table.player_hands[player]):
+                if hand.status != GameResult.ACTIVE:
                     continue
 
-            while self._play_with_player(id_player, dealer_card):
-                pass
+                while True:
+                    action = player.strategy.decide_action(hand, dealer_upcard)
 
-    def _dealer_second_card(self) -> None:
-        """The dealer opens the second card."""
-        self._round_state = GameStates.DEALER_SECOND_CARD
-        for (id_player, player) in enumerate(self._desk.players):
-            for id_hand, hand in enumerate(self._desk.hands[player]):
-                if not hand.in_playing:
-                    continue
-
-                if (
-                    hand.get_state() is HandStates.BLACKJACK
-                    and not self._desk.dealer.hand.get_state() is HandStates.BLACKJACK
-                ):
-                    player.diff_chips(int(hand.get_bet() * 2.5))
-                    hand.game_over()
-                elif (
-                    not hand.get_state() is HandStates.BLACKJACK
-                    and self._desk.dealer.hand.get_state() is HandStates.BLACKJACK
-                ):
-                    hand._state = HandStates.LOSE
-                    hand.game_over()
-
-    def _dealer_play(self) -> None:
-        """The dealer takes the missing cards."""
-        self._round_state = GameStates.DEALER_PLAY
-        while True:
-            dealer_score = self._desk.dealer.hand.get_score()
-            if dealer_score == -1 or dealer_score >= 17:
-                break
-            self._desk.dealer_give_card(self._desk.dealer.hand)
-
-    def _round_results(self) -> None:
-        """The results of the game are summarized."""
-        self._round_state = GameStates.RESULTS
-        dealer_score = self._desk.dealer.hand.get_score()
-        for (id_player, player) in enumerate(self._desk.players):
-            for id_hand, hand in enumerate(self._desk.hands[player]):
-                if not hand.in_playing:
-                    continue
-
-                hand_score = hand.get_score()
-
-                if hand_score > dealer_score:
-                    hand._state = HandStates.WIN
-                    player.diff_chips(hand.get_bet() * 2)
-                    hand.game_over()
-
-                elif hand_score == dealer_score:
-                    hand._state = HandStates.DRAWN_GAME
-                    player.diff_chips(hand.get_bet())
-                    hand.game_over()
-                else:
-                    hand._state = HandStates.LOSE
-                    hand.game_over()
-
-    def _end_round(self) -> None:
-        """Completes the round."""
-        self._round_state = GameStates.END
-
-    def _play_with_player(self, id_player: int, dealer_card: Card) -> bool:
-        """
-        Player takes the cards depending on the strategy.
-
-        Args:
-            id_player (int): the index of the player in the list of players.
-            dealer_card (Card): dealer's open card.
-
-        Returns:
-            result (bool): a flag indicating that the player has not finished the game.
-        """
-        target_player = self._desk.players[id_player]
-        for id_hand, hand in enumerate(self._desk.hands[target_player]):
-            if not hand.in_playing or hand.get_history()[-1] == "pass":
-                continue
-            while True:
-                score = hand.get_score()
-                if score == -1:
-                    hand._state = HandStates.LOSE
-                    hand.game_over()
-                    break
-                elif score == 21:
-                    break
-
-                action = target_player.strategy.play(hand, dealer_card)
-                match action:
-                    case Action.PASS:
-                        hand.action_pass()
+                    if action == PlayerAction.STAND:
                         break
 
-                    case Action.TAKE:
-                        self._desk.dealer_give_card(hand)
-
-                    case Action.SPLIT:
-                        if not target_player.check_bet(hand.get_bet()):
-                            hand.action_pass()
+                    elif action == PlayerAction.HIT:
+                        self.table.deal_card_to_hand(hand)
+                        if hand.calculate_value() == -1:  # Bust
+                            hand.status = GameResult.BUST
                             break
-                        target_player.diff_chips(-hand.get_bet())
-                        self._desk.split(target_player, id_hand)
-                        return True
 
-                    case Action.DOUBLE:
-                        if not target_player.check_bet(hand.get_bet()):
-                            self._desk.dealer_give_card(hand)
+                    elif action == PlayerAction.DOUBLE:
+                        if len(hand.cards) == 2 and player.can_place_bet(hand.wager):
+                            player.place_bet(hand.wager)
+                            hand.double_wager()
+                            self.table.deal_card_to_hand(hand)
+                            break
+
+                    elif action == PlayerAction.SPLIT:
+                        if len(hand.cards) == 2 and hand.cards[0].rank == hand.cards[1].rank:
+                            self.table.split_hand(player, i)
+                            # Need to re-evaluate after split
                             continue
-                        target_player.diff_chips(-hand.get_bet())
-                        hand.double_down()
-                        self._desk.dealer_give_card(hand)
 
-                    case Action.TRIPLING:
-                        if not hand.double_bet:
-                            raise ValueError(
-                                "Before tripling the bets, you need to double them."
-                            )
-                        if not target_player.check_bet(hand.get_bet() // 2):
-                            self._desk.dealer_give_card(hand)
-                            continue
-                        target_player.diff_chips(-hand.get_bet() // 2)
-                        hand.tripling_bet()
+                    elif action == PlayerAction.SURRENDER:
+                        if len(hand.cards) == 2:
+                            player.adjust_bankroll(hand.wager // 2)
+                            hand.status = GameResult.LOSE
+                            break
+        self._notify_observers()
 
-                    case Action.SURRENDER:
-                        target_player.diff_chips(hand.get_bet() // 2)
-                        hand._state = HandStates.LOSE
-                        hand.game_over()
-                        break
-        return False
+    def process_dealer_turn(self) -> None:
+        """Handle the dealer's play"""
+        self.current_phase = RoundPhase.DEALER_TURN
+        dealer_hand = self.table.dealer.hand
 
-    def get_state(self) -> GameStates:
-        """Returns the game state."""
-        return self._round_state
+        # Reveal dealer's hole card
+        if len(dealer_hand.cards) > 1:
+            dealer_hand.cards[1].face_up = True
 
-    def play_steps(self, num_steps: int = 8) -> None:
-        """Performs the first number steps of the game."""
-        if not num_steps:
-            return
+        # Dealer draws according to rules
+        while dealer_hand.calculate_value() not in (-1, 17, 18, 19, 20, 21):
+            self.table.deal_card_to_hand(dealer_hand)
 
-        self._start_game()
-        num_steps -= 1
-        if not num_steps:
-            return
+        dealer_hand.status = GameResult.WIN if dealer_hand.calculate_value() != -1 else GameResult.BUST
+        self._notify_observers()
 
-        self._place_bets()
-        num_steps -= 1
-        if not num_steps:
-            return
+    def process_payouts(self) -> None:
+        """Calculate and distribute winnings"""
+        self.current_phase = RoundPhase.PAYOUTS
+        dealer_value = self.table.dealer.hand.calculate_value()
+        dealer_busted = dealer_value == -1
 
-        self._dealer_start()
-        num_steps -= 1
-        if not num_steps:
-            return
+        for player in self.table.players:
+            for hand in self.table.player_hands[player]:
+                if hand.status != GameResult.ACTIVE:
+                    continue
 
-        self._take_cards()
-        num_steps -= 1
-        if not num_steps:
-            return
+                player_value = hand.calculate_value()
 
-        self._dealer_second_card()
-        num_steps -= 1
-        if not num_steps:
-            return
+                if player_value == -1:  # Player busted
+                    hand.status = GameResult.BUST
 
-        self._dealer_play()
-        num_steps -= 1
-        if not num_steps:
-            return
+                elif len(hand.cards) == 2 and player_value == 21:  # Blackjack
+                    hand.status = GameResult.BLACKJACK
+                    player.adjust_bankroll(int(hand.wager * 2.5))
 
-        self._round_results()
-        num_steps -= 1
-        if not num_steps:
-            return
+                elif dealer_busted or player_value > dealer_value:
+                    hand.status = GameResult.WIN
+                    player.adjust_bankroll(hand.wager * 2)
 
-        self._end_round()
+                elif player_value == dealer_value:
+                    hand.status = GameResult.PUSH
+                    player.adjust_bankroll(hand.wager)
 
-    def play_round_with_show_states(self) -> None:
-        """Performs a full round and outputs information to the console at each stage."""
-        self._start_game()
-        self._show_state()
+                else:
+                    hand.status = GameResult.LOSE
+        self._notify_observers()
 
-        self._place_bets()
-        self._show_state()
+    def complete_round(self) -> None:
+        """Clean up after round completion"""
+        self.current_phase = RoundPhase.COMPLETION
+        self._notify_observers()
 
-        self._dealer_start()
-        self._show_state()
+    def play_full_round(self) -> None:
+        """Execute a complete round from start to finish"""
+        self.start_new_round()
+        self.process_betting_phase()
+        self.process_initial_deal()
+        self.process_player_turns()
+        self.process_dealer_turn()
+        self.process_payouts()
+        self.complete_round()
 
-        self._take_cards()
-        self._show_state()
+    def add_observer(self, observer) -> None:
+        """Add a game state observer"""
+        self.observers.append(observer)
 
-        self._dealer_second_card()
-        self._show_state()
 
-        self._dealer_play()
-        self._show_state()
+class GameObserver:
+    """Base class for game state observers"""
 
-        self._round_results()
-        self._show_state()
+    def update(self, game: BlackjackGame) -> None:
+        """Handle game state updates"""
+        self._display_round_info(game)
+        self._display_phase_info(game.current_phase)
+        self._display_table_state(game.table)
 
-        self._end_round()
-        self._show_state()
+    def _display_round_info(self, game: BlackjackGame) -> None:
+        print(f"\n=== Round {game.round_number} ===")
+
+    def _display_phase_info(self, phase: RoundPhase) -> None:
+        phase_descriptions = {
+            RoundPhase.INITIALIZATION: "Setting up new round...",
+            RoundPhase.BETTING: "Players placing bets...",
+            RoundPhase.INITIAL_DEAL: "Dealing initial cards...",
+            RoundPhase.PLAYER_TURNS: "Players making decisions...",
+            RoundPhase.DEALER_TURN: "Dealer playing hand...",
+            RoundPhase.PAYOUTS: "Calculating results...",
+            RoundPhase.COMPLETION: "Round complete!"
+        }
+        print(phase_descriptions.get(phase, ""))
+
+    def _display_table_state(self, table: BlackjackTable) -> None:
+        # Display dealer's hand
+        print("\nDealer's Hand:")
+        table.dealer.hand.display()
+
+        # Display each player's hands
+        for i, player in enumerate(table.players):
+            print(f"\nPlayer {i + 1} (Bankroll: {player.bankroll}):")
+            for j, hand in enumerate(table.player_hands[player]):
+                print(f"  Hand {j + 1} (Bet: {hand.wager}):")
+                hand.display()
+                print(f"  Status: {hand.status.name}")
