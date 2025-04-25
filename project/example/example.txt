@@ -1,0 +1,82 @@
+=== BLACKJACK GAME SESSION ===
+
+[ ROUND 1 INITIATED ]
+
+• WAGERS PLACED:
+   - Player 1: $10
+   - Player 2: $10
+   - Player 3: $20 (high roller)
+   - Player 4: $10
+
+• DEALER'S INITIAL MOVE:
+   Visible Card: ♦4
+   (Hidden card dealt)
+
+• PLAYER ACTIONS:
+
+Player #1:
+Cards: ♣5 ♥9 (Total: 14)
+Moves: Drew card, Drew card, Stand
+
+Player #2:
+Cards: ♠4 ♦6 ♥3 ♣8 (Total: 21)
+Moves: Drew card, Drew card, Doubled bet, Drew card, Drew card
+
+Player #3:
+Cards: ♠10 ♣9 ♠3 (BUST)
+Moves: Drew card, Drew card, Drew card
+
+Player #4:
+Cards: ♠8 ♣Q (Total: 18)
+Moves: Drew card, Drew card, Stand
+
+• DEALER'S TURN:
+Revealed Hand: ♦4 ♣3 (Total: 7)
+Final Hand: ♦4 ♣3 ♥6 ♠2 ♥5 (Total: 20)
+
+• ROUND RESULTS:
+
+Player #1: LOSS (14 vs 20)
+Player #2: WIN (21)
+Player #3: LOSS (Bust)
+Player #4: LOSS (18 vs 20)
+
+[ ROUND 1 CONCLUDED ]
+
+[ ROUND 2 INITIATED ]
+
+• WAGERS PLACED:
+   - Player 1: $10
+   - Player 2: $10
+   - Player 3: $20
+   - Player 4: Cannot bet (insufficient funds)
+
+• DEALER'S INITIAL MOVE:
+   Visible Card: ♠6
+   (Hidden card dealt)
+
+• PLAYER ACTIONS:
+
+Player #1:
+Cards: ♦Q ♥10 (Total: 20)
+Moves: Drew card, Drew card, Stand
+
+Player #2:
+Cards: ♠A ♠5 ♥7 ♣4 (Total: 17)
+Moves: Drew card, Drew card, Drew card, Drew card, Stand
+
+Player #3:
+Cards: ♠K ♦7 ♠3 (Total: 20)
+Moves: Drew card, Drew card, Drew card, Stand
+
+• DEALER'S TURN:
+Revealed Hand: ♠6 ♥5 (Total: 11)
+Final Hand: ♠6 ♥5 ♣6 (Total: 17)
+
+• ROUND RESULTS:
+
+Player #1: WIN (20 vs 17)
+Player #2: PUSH (17 vs 17)
+Player #3: WIN (20 vs 17)
+
+[ ROUND 2 CONCLUDED ]
